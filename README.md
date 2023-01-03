@@ -52,3 +52,19 @@ def GCD_and_LCM():
     # LCM
     print( (lambda a,b: a*b//math.gcd(a,b))(21,14) )
 ```
+
+## Algorithm Sites
+
+### Global
+
+- [CODEFORCES](https://codeforces.com/)
+- [TopCoder](https://arena.topcoder.com/)
+- [LeetCode](https://leetcode.com/)
+- [CodeChef](https://www.codechef.com/)
+
+### Korea
+
+- [BaekJoon Online Judge](https://www.acmicpc.net/)
+- [CodeUp](https://codeup.kr/)
+- [programmers](https://programmers.co.kr/)
+- [SW Expert Academy](https://swexpertacademy.com/main/main.do)
