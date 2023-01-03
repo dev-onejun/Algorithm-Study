@@ -1,4 +1,4 @@
-# 공포도 내림차순 sort, 그룹 만들기
+# 공포도 오름차순 sort, 그룹 만들기
 
 N = int(input())
 fears = list(map(int, input().split()))
