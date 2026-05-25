@@ -1,5 +1,6 @@
 # directory
 venv/
+__pycache__/
 
 # file
 input*
