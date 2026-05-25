@@ -49,3 +49,40 @@ def is_anagram_array(s: str, t: str) -> bool:
         counts[ord(cs) - A] += 1
         counts[ord(ct) - A] -= 1
     return all(c == 0 for c in counts)
+
+
+"""
+" ============================================================================
+" Review of submitted solution (`is_anagram_user`) — 2026-05-25
+" ============================================================================
+"
+" Verdict:     Correct after de-commenting. Passes all 10 test cases.
+" Asymptotic:  O(n) time, O(k) space — matches optimum class.
+" Stress:      9.96ms vs counter 4.55ms at n=50_000 (~2.2× slower).
+"
+" Two issues with the submission itself before the algorithm:
+"   - The entire solution was inside a docstring; function returned None.
+"     Always sanity-check that you de-commented before submitting.
+"   - `dict[str, num]` annotation — `num` is not a type. Python silently
+"     accepts this at runtime (local annotations aren't evaluated), but
+"     mypy/pyright will fail it. Drop the annotation or use `dict[str, int]`.
+"
+" Algorithmic issues (ordered by impact):
+"   1. Pre-seed-then-count, twice. Four full O(n) passes when one suffices.
+"      The Stage 2 form `Counter(s) == Counter(t)` does it in one C-level
+"      pass per string.
+"   2. Two parallel structures (`s_dict_table` + `t_dict_table`) when one
+"      counter with +1 for s / -1 for t suffices (Stage 3 trick). Halves
+"      memory and merges into a single loop.
+"   3. Missing length pre-check `if len(s) != len(t): return False`. Every
+"      optimal anagram solution has this — costs O(1), saves an O(n) double
+"      counting pass on the easy-reject case.
+"
+" Recurring patterns flagged (see memory/user_recurring_patterns):
+"   - Pre-seed-then-count (now seen in 3 problems running)
+"   - Parallel structures when one suffices
+"   - Missing length pre-check
+"
+" Optimum gap: ~2.2× slower than Counter on stress; asymptotically optimal.
+" Idea is right (count letters, compare counts); execution leaks constants.
+"""

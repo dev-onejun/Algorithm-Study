@@ -59,3 +59,35 @@ def two_sum_onepass(nums: List[int], target: int) -> List[int]:
             return [seen[complement], i]
         seen[v] = i
     return []
+
+
+"""
+" ============================================================================
+" Review of submitted solution (`two_sum_user`) — 2026-05-25
+" ============================================================================
+"
+" Verdict:     Correct. Passes all 8 test cases.
+" Asymptotic:  O(n) time, O(n) space — matches optimum class.
+" Stress:      2.47ms vs one-pass 1.02ms at n=10_000 (~2.4× slower).
+"
+" Issues (ordered by impact):
+"   1. First dict `{i: target - nums[i] ...}` is redundant — `target - nums[i]`
+"      inline costs nothing and saves the full O(n) memory allocation.
+"   2. `try/except KeyError` as control flow — Python exceptions are 5–10×
+"      slower than `if k in d` on the miss path, and misses are the common
+"      case here. Prefer LBYL ("look before you leap") membership check.
+"   3. Two passes can collapse to one. The one-pass form sidesteps the
+"      `i == j` guard entirely: when you check the complement of `nums[i]`,
+"      only earlier indices are in the map, so self-match is impossible
+"      by construction.
+"   4. `for i in range(len(nums)): ... nums[i]` — use `enumerate` instead.
+"      Pythonic, faster (no per-iteration `__getitem__`), more readable.
+"   5. Loop variables `i, j` leak out of the for-loop. Works because the
+"      problem guarantees a solution, but fragile — return inside the loop.
+"
+" Recurring patterns flagged (see memory/user_recurring_patterns):
+"   - try/except control flow
+"   - `for i in range(len): xs[i]` style
+"
+" Optimum gap: ~2.4× slower than one-pass on stress; asymptotically optimal.
+"""
