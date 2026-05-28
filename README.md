@@ -5,7 +5,7 @@
 * [2020](./2020)
   - Self Study
 * [2026](./2026)
-  - Job recruting
+  - Job hunting
 
 ## Algorithm Sites
 
