@@ -49,7 +49,26 @@ def moving_average_fixed(values: list[float], k: int) -> list[float]:
     - Time: O(n)
     - Space: O(k)
     """
-    raise NotImplementedError
+    if k <= 0:
+        raise ValueError
+    if values == []:
+        return []
+
+    results: list[float] = []
+    for i in range(len(values)):
+        add_num, num_elements = 0, k
+
+        for j in range(i, i - k, -1):
+
+            if j < 0:
+                num_elements -= 1
+                continue
+
+            add_num += values[j]
+
+        add_num /= num_elements
+        results.append(add_num)
+    return results
 
 
 def moving_average_time_window(
@@ -75,8 +94,34 @@ def moving_average_time_window(
     - Time: O(n)
     - Space: O(w), where w is the max number of points inside the window
     """
-    raise NotImplementedError
+    # points = [(0.0, 10.0), (1.0, 20.0), (4.0, 30.0), (5.0, 40.0)]
 
+    if points == []:
+        return []
+    if window_seconds < 0:
+        raise ValueError
+
+    results: list[tuple[float, float]] = []
+    for i in range(len(points)):
+        cur_timestamp, _ = points[i]
+
+        add_num, num_points = 0, 0
+        cand_points = points[:i+1]
+        for point in cand_points[::-1]:
+            timestamp, value = point
+
+            if timestamp < cur_timestamp - window_seconds:
+                break
+
+            add_num += value
+            num_points += 1
+
+        try:
+            results.append( (cur_timestamp, add_num / num_points) )
+        except ZeroDivisionError:
+            pass
+
+    return results
 
 def compute_safety_metrics(
     events: list[dict[str, Any]], ttc_threshold: float = 1.5
