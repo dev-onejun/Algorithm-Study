@@ -10,21 +10,9 @@ Provenance: prompts and tests prepared/generated via my OpenClaw + GPT 5.5 syste
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
-from typing import Any
-
-
-@dataclass
-class SafetySummary:
-    total_runs: int
-    total_events: int
-    collision_runs: int
-    collision_rate: float
-    ttc_violation_count: int
-    ttc_violation_rate: float
-    min_ttc_by_run: dict[str, float]
-    avg_speed: float | None
-    worst_run_id: str | None
+from typing import Any, Optional
 
 
 def moving_average_fixed(values: list[float], k: int) -> list[float]:
@@ -94,8 +82,6 @@ def moving_average_time_window(
     - Time: O(n)
     - Space: O(w), where w is the max number of points inside the window
     """
-    # points = [(0.0, 10.0), (1.0, 20.0), (4.0, 30.0), (5.0, 40.0)]
-
     if points == []:
         return []
     if window_seconds < 0:
@@ -118,10 +104,24 @@ def moving_average_time_window(
 
         try:
             results.append( (cur_timestamp, add_num / num_points) )
-        except ZeroDivisionError:
+        except ZeroDivisionError: # Cautious
             pass
 
     return results
+
+
+@dataclass
+class SafetySummary:
+    total_runs: int
+    total_events: int
+    collision_runs: int
+    collision_rate: float
+    ttc_violation_count: int
+    ttc_violation_rate: float
+    min_ttc_by_run: dict[str, float]
+    avg_speed: float | None
+    worst_run_id: str | None
+
 
 def compute_safety_metrics(
     events: list[dict[str, Any]], ttc_threshold: float = 1.5
@@ -158,7 +158,63 @@ def compute_safety_metrics(
     - Time: O(n)
     - Space: O(r), where r is number of unique runs
     """
-    raise NotImplementedError
+    unique_ids = set()
+    collision_runs: dict[str, bool] = defaultdict(bool)
+    ttc_violation_count, num_ttc = 0, 0
+    min_ttc_by_run = defaultdict(float)
+    speeds = []
+
+    for event in events:
+        run_id = event['run_id']
+        unique_ids.add(run_id)
+
+        collision = event['collision']
+        if collision:
+            collision_runs[run_id] = True
+
+        try:
+            ttc = event['ttc']
+            num_ttc += 1
+
+            if ttc < ttc_threshold:
+                ttc_violation_count += 1
+
+            if run_id not in min_ttc_by_run:
+                min_ttc_by_run[run_id] = ttc
+            else:
+                if min_ttc_by_run[run_id] > ttc:
+                    min_ttc_by_run[run_id] = ttc
+        except KeyError:
+            pass
+
+        try:
+            speed: Optional[float] = event['speed']
+            speeds.append(speed)
+        except KeyError:
+            speed = None
+
+
+    total_runs: int = len(unique_ids)
+    total_events: int = len(events)
+    collision_runs: int = len(collision_runs)
+    collision_rate: float = collision_runs / total_runs
+    ttc_violation_rate = ttc_violation_count / num_ttc
+    try:
+        avg_speed = sum(speeds) / len(speeds)
+    except ZeroDivisionError:
+        avg_speed = None
+
+    return SafetySummary(
+        total_runs=total_runs,
+        total_events=total_events,
+        collision_runs=collision_runs,
+        collision_rate=collision_rate,
+        ttc_violation_count=ttc_violation_count,
+        ttc_violation_rate=ttc_violation_rate,
+        min_ttc_by_run=min_ttc_by_run,
+        avg_speed=avg_speed,
+        worst_run_id=choose_worst_run(collision_run_ids=unique_ids, min_ttc_by_run=min_ttc_by_run),
+    )
 
 
 def choose_worst_run(
@@ -181,7 +237,7 @@ def choose_worst_run(
     - Time: O(r)
     - Space: O(r)
     """
-    raise NotImplementedError
+    return None
 
 
 def parse_log_line(line: str) -> dict[str, Any]:
